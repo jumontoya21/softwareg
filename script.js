@@ -1425,3 +1425,12 @@ function ordenarGrupos(array) {
   });
 }
 
+
+document.addEventListener("DOMContentLoaded", () => {
+  const darkButton = document.getElementById("toggle-dark");
+  if (darkButton) {
+    darkButton.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+    });
+  }
+});
