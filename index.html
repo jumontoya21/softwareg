@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Personal</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> Sistema de Gestión de Personal</h1>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="personal">👥 Base de Datos</button>
+            <button class="tab" data-tab="cronograma">📅 Cronograma Diario</button>
+            <button class="tab" data-tab="listado">📋 Listado Envío</button>
+        </div>
+
+        
+        <div id="personal-tab" class="tab-content active">
+            <div class="panel-section">
+                <h2 class="section-title">Base de Datos del Personal</h2>
+
+                <div class="form-card">
+                    <h3>➕ Agregar / Editar Personal</h3>
+                    <input type="hidden" id="worker-id"> 
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre completo</label>
+                            <input type="text" id="nombre">
+                        </div>
+                        <div class="form-group">
+                            <label>alias</label>
+                            <input type="text" id="pseudonimo">
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Cédula</label>
+                            <input type="text" id="cedula">
+                        </div>
+                        <div class="form-group">
+                            <label>Cargo</label>
+                            <input type="text" id="cargo" >
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" id="btn-save-worker">✅ Guardar Personal</button>
+                        <button class="btn btn-warning hidden" id="btn-cancel-edit">Cancelar Edición</button>
+                    </div>
+                    <div class="form-card">
+                        <input type="file" id="importWorkersFile" accept=".json" hidden>
+                    <input type="file" id="importFile" accept=".json" hidden>
+                    <button onclick="document.getElementById('importFile').click()">📥 Importar JSON Completo</button>
+                    <div id="import-status">
+
+                    </div>
+                    </div>
+                </div>
+
+                <div class="search-box">
+                    <input type="text" id="search-personal" placeholder="buscar por nombre o cargo">
+                </div>
+
+                <select id="statusFilter">
+                    <option value="all">Todos</option>
+                    <option value="scheduled">Agendados</option>
+                    <option value="pending">Por agendar</option>
+                </select>
+
+
+                <div id="personal-table-container">
+                    
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="cronograma-tab" class="tab-content">
+            <div class="panel-section">
+                <h2 class="section-title">Cronograma de Trabajo</h2>
+
+                <div class="date-selector form-card">
+                    <label>Fecha del Cronograma</label>
+                    <input type="date" id="fecha-cronograma">
+                </div>
+
+                <div id="alert-box" class="alert hidden"></div>
+
+                
+
+                <div class="form-card">
+                    <h3>➕ Programar Nuevo Turno (Grupo)</h3>
+
+                    <input type="hidden" id="shift-id">
+
+
+                    <div class="form-group">
+                        <label>👥 Seleccionar Personal (Click para marcar)</label>
+                        <div id="pseudonym-selector" class="pseudonym-selector">
+                            
+                            <p class="empty-msg">Agregue personal en la Base de Datos primero.</p>
+                        </div>
+                        <small>Permite selección múltiple</small>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Hora Inicio</label>
+                            <input type="time" id="hora-inicio" value="07:00">
+                        </div>
+                        <div class="form-group">
+                            <label>Hora Fin</label>
+                        <input type="time" id="hora-fin" value="17:00">
+                        <div class="form-group" style="display: flex; align-items: center; gap: 5px;">
+                         <input type="checkbox" id="chk-Terminar">
+                        Terminar 
+                        </div>
+                        </div>
+                        <div class="form-group">
+                            <label> Ubicación</label>
+                            <input type="text" id="lugar" placeholder="Ej: Torre 1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="estado-turno">
+                            <option value="Programado">Programado</option>
+                            <option value="Confirmado">Confirmado</option>
+                            <option value="En Curso">En Curso</option>
+                            <option value="Finalizado">Finalizado</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" id="btn-add-shift">✅ Agregar Grupo</button>
+                </div>
+
+                <div id="cronograma-container" class="cronograma-list">
+                    
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="listado-tab" class="tab-content">
+            <div class="panel-section">
+                <h2 class="section-title"> Listado para WhatsApp / Correo</h2>
+
+                
+                <div class="alert alert-success">
+                    Listo para copiar y pegar.
+                </div>
+
+                <br>
+                <div class="action-buttons">
+                        <button id="btn-copy-yesterday" class="btn btn-primary">Copiar turnos a la fecha actual </button>
+                        <br>
+                    <br>
+                    <button id="btn-delete-all-shifts" class="btn btn-danger"> Eliminar todos los turnos </button> 
+                    <br>
+                    <button class="btn btn-success" id="btn-copy">📋 Copiar al Portapapeles</button>
+                    <br>
+                <button class="btn btn-primary" id="btn-download-jpg">
+                    🖼 Descargar como JPG
+                </button>
+                </div>
+
+                <div id="export-area" class="export-area">
+                    <div id="listado-preview" class="listado-preview">
+                    
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
