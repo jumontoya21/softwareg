@@ -532,3 +532,15 @@ select:focus {
         flex-direction: column;
     }
 }
+
+/* Estilo oscuro */
+body.dark {
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+body.dark table {
+  background-color: #1e1e1e;
+  color: #ffffff;
+  border-color: #444;
+}
