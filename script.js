@@ -903,81 +903,43 @@ async function handleDownloadJpg() {
             backgroundColor: "#ffffff"
         });
         
-        const imageData = canvas.toDataURL("image/jpeg", 0.95);
+        // Convertir a blob
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+        const file = new File([blob], `cronograma_${selectedDate}.jpg`, { type: 'image/jpeg' });
         
-        // Descarga directa
+        // Intentar usar Web Share API (para iOS)
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    title: 'Cronograma',
+                    files: [file]
+                });
+                showAlert('✅ Imagen guardada en Fotos', 'success');
+                return;
+            } catch (shareError) {
+                if (shareError.name !== 'AbortError') {
+                    console.log('Share falló, usando método alternativo');
+                } else {
+                    return; // Usuario canceló
+                }
+            }
+        }
+        
+        // Fallback para Android/PC o cuando share no está disponible
         const link = document.createElement('a');
         link.download = `cronograma_${selectedDate}.jpg`;
-        link.href = imageData;
+        link.href = canvas.toDataURL('image/jpeg', 0.95);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
         showAlert('✅ Imagen descargada', 'success');
         
     } catch (error) {
-        console.error("Error generando JPG:", error);
+        console.error("Error:", error);
         showAlert("Error al generar la imagen", "error");
     }
-}async function handleExport() {
-    
-    
-    try {
-        const { data: allWorkers } = await supabaseClient.from("workers").select("*");
-        const { data: allShifts } = await supabaseClient.from("shifts").select("*");
-        
-        const shiftsByDate = {};
-        allShifts.forEach(shift => {
-            const date = shift.date.split('T')[0];
-            if (!shiftsByDate[date]) {
-                shiftsByDate[date] = [];
-            }
-            
-            const existingGroup = shiftsByDate[date].find(g => 
-                g.start === shift.start_time && 
-                g.end === shift.end_time && 
-                g.location === shift.location
-            );
-            
-            if (existingGroup) {
-                if (!existingGroup.workerIds.includes(shift.worker_id)) {
-                    existingGroup.workerIds.push(shift.worker_id);
-                }
-            } else {
-                shiftsByDate[date].push({
-                    start: shift.start_time,
-                    end: shift.end_time,
-                    location: shift.location,
-                    workerIds: [shift.worker_id],
-                    status: shift.status
-                });
-            }
-        });
-        
-        const exportData = {
-            workers: allWorkers,
-            shiftsByDate: shiftsByDate,
-            exportDate: new Date().toISOString(),
-            version: "1.0"
-        };
-        
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const blob = new Blob([dataStr], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `backup_personal_${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        
-        URL.revokeObjectURL(url);
-        showAlert('✅ Datos exportados correctamente', 'success');
-        
-    } catch (error) {
-        console.error("Error en exportación:", error);
-        showAlert("Error al exportar datos", "error");
-    }
 }
+
 
 async function handleImport(event) {
     const file = event.target.files[0];
