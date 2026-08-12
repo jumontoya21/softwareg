@@ -891,21 +891,69 @@ async function handleCopyListado() {
 
 async function handleDownloadJpg() {
     if (!elements.exportArea) return;
-    
     try {
         showAlert('Generando imagen...', 'info');
-        
         const canvas = await html2canvas(elements.exportArea, {
-            scale: 4,
+            scale: 2,
             backgroundColor: "#ffffff"
         });
-        
-        const link = document.createElement("a");
-        link.download = `cronograma_${selectedDate}.jpg`;
-        link.href = canvas.toDataURL("image/jpeg", 1.0);
-        link.click();
-        
-        showAlert('✅ Imagen descargada', 'success');
+        const imageData = canvas.toDataURL("image/jpeg", 0.95);
+        // iPhone / iPad: abrir la imagen para permitir guardarla en Fotos
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        if (isIOS) {
+            const newWindow = window.open();
+            if (!newWindow) {
+                showAlert(
+                    "El navegador bloqueó la ventana. Permite ventanas emergentes e inténtalo nuevamente.",
+                    "error"
+                );
+                return;
+            }
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1">
+                    <title>Cronograma ${selectedDate}</title>
+                    <style>
+                        body {
+                            margin: 0;
+                            padding: 16px;
+                            background: #f5f5f5;
+                            text-align: center;
+                            font-family: Arial, sans-serif;
+                        }
+                        img {
+                            max-width: 100%;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                            background: white;
+                        }
+                        p {
+                            color: #555;
+                            font-size: 16px;
+                            margin: 16px 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <p>Mantén presionada la imagen para guardarla en Fotos.</p>
+                    <img src="${imageData}" alt="Cronograma ${selectedDate}">
+                </body>
+                </html>
+            `);
+            newWindow.document.close();
+            showAlert('✅ Imagen generada. Mantén presionada la imagen para guardarla.', 'success');
+        } else {
+            // Android / PC: mantener la descarga normal
+            const link = document.createElement("a");
+            link.download = `cronograma_${selectedDate}.jpg`;
+            link.href = imageData;
+            link.click();
+            showAlert('✅ Imagen descargada', 'success');
+        }
     } catch (error) {
         console.error("Error generando JPG:", error);
         showAlert("Error al generar la imagen", "error");
